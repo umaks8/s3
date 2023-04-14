@@ -1,6 +1,6 @@
 # s3
 
-Swiss army pen-knife for Amazon S3.
+Advanced swiss army pen-knife for Amazon S3 with server-side encryption support.
 
 - ls: List buckets or keys
 - get: Download keys
@@ -9,6 +9,7 @@ Swiss army pen-knife for Amazon S3.
 - sync: Synchronise local to s3, s3 to local or s3 to s3
 - rm: Delete keys
 - mb: Create buckets
+- put: Upload keys
 - rb: Delete buckets
 
 # Installation
@@ -16,7 +17,7 @@ Swiss army pen-knife for Amazon S3.
 Installation is super-easy, there's no need to install anything, just download
 the self-contained binary from the github releases page (builds are available
 for Linux, Mac or Windows and 32-bit or 64-bit):
-https://github.com/barnybug/s3/releases/
+https://github.com/umaks8/s3/releases/
 
 Rename and make the download executable:
 
@@ -29,7 +30,7 @@ And you're ready to go:
 Alternatively you can instead build from source, you'll need go 1.2 installed,
 then:
 
-    go get github.com/barnybug/s3
+    go get github.com/umaks8/s3
 
 # Setup
 
@@ -56,9 +57,9 @@ Cat (stream to stdout) all the contents under the path:
 
     s3 cat s3://bucket/path | grep needle
 
-Synchronise localpath to an s3 bucket:
+Synchronise localpath to an s3 bucket with aws:kms server-side encryption:
 
-    s3 sync localpath s3://bucket/path
+    s3 sync [--acl bucket-owner-full-control] [--delete] [--kmskeyid KMS Key ID] localpath s3://bucket/path
 
 Synchronise an s3 bucket to localpath:
 

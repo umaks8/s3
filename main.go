@@ -20,6 +20,7 @@ var (
 	quiet        bool
 	ignoreErrors bool
 	acl          string
+	kmsKeyId     string
 )
 var version = "master" /* passed in by go build */
 
@@ -107,6 +108,12 @@ func Main(conn s3iface.S3API, args []string, output io.Writer) int {
 		Name:        "delete",
 		Usage:       "delete extraneous files from destination",
 		Destination: &deleteExtra,
+	}
+	kmsKeyIdFlag := cli.StringFlag{
+		Name:        "kmskeyid",
+		Usage:       "set server-side encryption algorithm to aws:kms (value=KMS Key ID) or to AES256 (value=256)",
+		Value:       "",
+		Destination: &kmsKeyId,
 	}
 
 	app := cli.NewApp()
@@ -209,7 +216,7 @@ func Main(conn s3iface.S3API, args []string, output io.Writer) int {
 			Name:      "put",
 			Usage:     "Upload files",
 			ArgsUsage: "source [source ...] dest",
-			Flags:     []cli.Flag{aclFlag, publicFlag},
+			Flags:     []cli.Flag{aclFlag, publicFlag, kmsKeyIdFlag},
 			Action: func(c *cli.Context) {
 				if len(c.Args()) < 2 {
 					cli.ShowCommandHelp(c, "put")
@@ -265,7 +272,7 @@ func Main(conn s3iface.S3API, args []string, output io.Writer) int {
 			Name:      "sync",
 			Usage:     "Synchronise local to s3, s3 to s3 or s3 to local",
 			ArgsUsage: "source dest",
-			Flags:     []cli.Flag{aclFlag, publicFlag, deleteFlag},
+			Flags:     []cli.Flag{aclFlag, publicFlag, deleteFlag, kmsKeyIdFlag},
 			Action: func(c *cli.Context) {
 				if len(c.Args()) != 2 {
 					cli.ShowCommandHelp(c, "sync")

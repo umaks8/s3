@@ -146,6 +146,14 @@ func (self *S3Filesystem) Create(src File) error {
 		Key:      aws.String(fullpath),
 		Metadata: aws.StringMap(meta),
 	}
+	if kmsKeyId != "" {
+		if kmsKeyId == "256" {
+			input.ServerSideEncryption = aws.String("AES256")
+		} else {
+			input.ServerSideEncryption = aws.String("aws:kms")
+			input.SSEKMSKeyId = aws.String(kmsKeyId)
+		}
+	}
 
 	switch t := src.(type) {
 	case *S3File:
