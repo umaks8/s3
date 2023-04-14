@@ -1,7 +1,11 @@
 export GO15VENDOREXPERIMENT=1
 
 package = github.com/barnybug/s3/cmd/s3
-buildargs = -ldflags '-X github.com/barnybug/s3.version=${TRAVIS_TAG}'
+release_version = $(shell git tag --sort=committerdate --list '[0-9]*' | tail -1)
+ifeq ($(release_version),)
+    $(error Most recent git tag not found)
+endif
+buildargs = -ldflags '-X github.com/umaks8/s3.version=$(release_version)'
 
 .PHONY: release
 
