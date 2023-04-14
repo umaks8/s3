@@ -1,6 +1,7 @@
 package s3
 
 import (
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -43,6 +44,15 @@ func (self *S3File) IsDirectory() bool {
 
 func (self *S3File) MD5() []byte {
 	if self.md5 == nil {
+		input := s3.HeadObjectInput{
+			Bucket: aws.String(self.bucket),
+			Key:    self.object.Key,
+		}
+		output, err := self.conn.HeadObject(&input)
+		if err == nil && aws.StringValue(output.Metadata["Md5cs"]) != "" {
+			self.md5, _ = base64.URLEncoding.DecodeString(aws.StringValue(output.Metadata["Md5cs"]))
+			return self.md5
+		}
 		etag := *self.object.ETag
 		v := etag[1 : len(etag)-1]
 		self.md5, _ = hex.DecodeString(v)
@@ -122,15 +132,19 @@ func guessMimeType(filename string) string {
 
 func (self *S3Filesystem) Create(src File) error {
 	var fullpath string
+	var meta = map[string]string{
+		"Md5cs": base64.URLEncoding.EncodeToString(src.MD5()),
+	}
 	if self.path == "" || strings.HasSuffix(self.path, "/") {
 		fullpath = filepath.Join(self.path, src.Relative())
 	} else {
 		fullpath = self.path
 	}
 	input := s3manager.UploadInput{
-		ACL:    aws.String(acl),
-		Bucket: aws.String(self.bucket),
-		Key:    aws.String(fullpath),
+		ACL:      aws.String(acl),
+		Bucket:   aws.String(self.bucket),
+		Key:      aws.String(fullpath),
+		Metadata: aws.StringMap(meta),
 	}
 
 	switch t := src.(type) {
@@ -150,6 +164,9 @@ func (self *S3Filesystem) Create(src File) error {
 		input.ContentType = output.ContentType
 		// input.LastModified = output.LastModified
 		input.StorageClass = output.StorageClass
+		if aws.StringValue(output.Metadata["Md5cs"]) != "" {
+			input.Metadata["Md5cs"] = output.Metadata["Md5cs"]
+		}
 	default:
 		reader, err := src.Reader()
 		if err != nil {

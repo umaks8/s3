@@ -10,6 +10,7 @@ package s3
 import (
 	"bytes"
 	"compress/gzip"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -109,7 +110,7 @@ func listKeys(conn s3iface.S3API, urls []string) error {
 		if quiet {
 			fmt.Fprintln(out, file)
 		} else {
-			fmt.Fprintf(out, "%s\t%db\n", file, file.Size())
+			fmt.Fprintf(out, "%s\t%db\t%s\n", file, file.Size(), hex.EncodeToString(file.MD5()))
 		}
 		count += 1
 		totalSize += file.Size()
@@ -519,7 +520,7 @@ func syncFiles(conn s3iface.S3API, src, dest string) error {
 				deleted += 1
 			}
 			f2 = <-ch2
-		} else if f1.Size() != f2.Size() || bytes.Compare(f1.MD5(), f2.MD5()) != 0 {
+		} else if f1.Size() != f2.Size() || !bytes.Equal(f1.MD5(), f2.MD5()) {
 			q <- Action{"update", f1}
 			updated += 1
 			f1 = <-ch1
