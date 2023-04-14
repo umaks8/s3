@@ -1,7 +1,7 @@
 builds:
   - binary: s3
     main: ./cmd/s3
-    ldflags: -s -w -X=github.com/barnybug/s3.version={{.Version}}
+    ldflags: -s -w -X=github.com/umaks8/s3.version={{.Version}}
     goos:
       - linux
       - darwin
@@ -16,7 +16,8 @@ builds:
         goarch: 386
 
 archives:
-- name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
+- name_template: >-
+    {{ .ProjectName }}-
+    {{- if eq .Os "darwin" }}mac
+    {{- else }}{{ .Os }}{{ end }}-{{ .Arch }}
   format: binary
-  replacements:
-    darwin: mac

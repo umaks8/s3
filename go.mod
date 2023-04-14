@@ -1,4 +1,4 @@
-module github.com/barnybug/s3
+module github.com/umaks8/s3
 
 go 1.15
 

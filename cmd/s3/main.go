@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/barnybug/s3"
+	"github.com/umaks8/s3"
 )
 
 func main() {
